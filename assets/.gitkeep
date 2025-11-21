@@ -1,0 +1,7 @@
+# 这个文件用于保持 assets 目录在 git 中被跟踪
+# 你可以在这个目录下添加图片等静态资源，比如：
+# - logo.png
+# - avatar.jpg
+# - screenshots/xxx.png
+#
+# 然后在 markdown 中引用：![图片说明](/assets/logo.png)

@@ -102,14 +102,14 @@
       <main>
         <h2>前缀树</h2>
 <p>前缀树是一个高效的存储字符串集合的数据结构，通过同一个前缀共用节点来压缩信息，能够在随机的字符串集合中有着较好的压缩效率。举个例子，假设有一个字符串集合 <code>[ab， abc， abcd， axy， buv]</code> ，找这个集合构建的前缀树应该如下图所示。橙色的表示为叶子节点（定义为字符串结束）</p>
-<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980515921-fb783012-b088-49be-b97f-830a2bf183df.png" alt=""></p>
+<p>![](/assets/succinct set/image.png)</p>
 <p>可以发现一样的前缀 <code>ab</code> 已经被合并为三个节点，可能在现在这里没有体现出来，但在非常大的数据集下压缩效率是非常显著的。</p>
 <h2>压缩前缀树</h2>
 <p>但是仍然不够，下面介绍基于<code>Succinct Data Structure</code> 构建的Succinct Set。</p>
 <p>首先定义一个节点如何转化为一串字符，设节点有x个子节点，则该节点由x个0和1个1表示，最终如下图所示。</p>
-<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980522736-f7426c8e-198f-4664-9fbd-1739ae41e93e.png" alt=""></p>
+<p>![](/assets/succinct set/image-1763724401114.png)</p>
 <p>将整个前缀树按层序遍历拍平得到 <code>001 001 01 01 01 01 01 1 1 1</code> 。如下图所示</p>
-<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980526206-eedeb1f1-e143-47a6-89c8-2f9e42c42a26.png" alt=""></p>
+<p>![](/assets/succinct set/image-1763724407147.png)</p>
 <p>那怎么将其重新构建回一颗前缀树？</p>
 <p>首先建一个表格，来看看数据和节点编号之间的关系？</p>
 <table>
@@ -308,17 +308,17 @@
 <ol>
 <li>找到 <code>a</code> 的边，是位置 <code>0</code> ，然后要跳到子节点 <code>1</code></li>
 </ol>
-<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980531937-8e581b3e-32a3-4cc9-8a3e-53bbe39bf24d.png" alt=""></p>
+<p>![](/assets/succinct set/image-1763724416412.png)</p>
 <p>问题来了！我们怎么知道要跳到哪个节点？</p>
 <p>考虑到是层序遍历得到的数据，每一个 <code>0</code> 其实都是对应着一个节点和一条边，又由于根节点没有边，则第 <code>x</code> 个 <code>0</code> 对应的就是第 <code>x + 1</code> 个节点！那就接着操作</p>
 <ol start="2">
 <li>找到 <code>x</code> 的边，是位置 <code>3</code> ，然后要跳到子节点 <code>4</code></li>
 </ol>
-<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980536264-00fe813d-e04c-4e75-9fb7-f7ddcd8845c2.png" alt=""></p>
+<p>![](/assets/succinct set/image-1763724418033.png)</p>
 <ol start="3">
 <li>找到 <code>y</code> 的边，是位置 <code>3</code> ，然后要跳到子节点 <code>4</code></li>
 </ol>
-<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980539646-9603ef05-a80e-4d3d-be6d-75000e39db16.png" alt=""></p>
+<p>![](/assets/succinct set/image-1763724419131.png)</p>
 <p>然后发现是叶子节点！这太巧了！发现压缩数据中并不能得知这个点是不是叶子节点，需要额外的标记，于是需要一个 <code>leaves</code> 数组来标记叶子节点，<code>leaves[i]</code> 为 <code>1</code> 表示节点 <code>i</code> 是叶子节点！</p>
 <h2>总结</h2>
 <h3>辅助函数：Rank 和 Select</h3>
