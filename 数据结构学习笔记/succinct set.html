@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>基于LOUDS 的 Succinct Set 详解 - WangJerome 的 blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      padding: 2rem 1rem 3rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      line-height: 1.7;
+      color: #111827;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    h1.site-name {
+      margin: 0 0 .25rem;
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    nav a {
+      font-size: .9rem;
+      margin-right: 1rem;
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    h1.post-title {
+      margin: 1.75rem 0 .5rem;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .post-date {
+      margin: 0 0 1rem;
+      font-size: .9rem;
+      color: #6b7280;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 1.25rem 0;
+    }
+
+    main a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    main a:hover {
+      text-decoration: underline;
+    }
+
+    pre {
+      padding: 0.75rem 1rem;
+      overflow-x: auto;
+      background: #f5f5f5;
+      border-radius: 6px;
+      font-size: .9rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: .8rem;
+      color: #9ca3af;
+      text-align: center;
+    }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/styles/default.min.css">
+  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/highlight.min.js"></script>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1 class="site-name">WangJerome 的 blog</h1>
+      <nav>
+        <a href="/">首页</a>
+        <a href="/categories.html">分类</a>
+        <a href="/about.html">关于</a>
+      </nav>
+    </header>
+
+    <article>
+      <h1 class="post-title">基于LOUDS 的 Succinct Set 详解</h1>
+      <p class="post-date">2025-11-21</p>
+      <hr />
+      <main>
+        <h2>前缀树</h2>
+<p>前缀树是一个高效的存储字符串集合的数据结构，通过同一个前缀共用节点来压缩信息，能够在随机的字符串集合中有着较好的压缩效率。举个例子，假设有一个字符串集合 <code>[ab， abc， abcd， axy， buv]</code> ，找这个集合构建的前缀树应该如下图所示。橙色的表示为叶子节点（定义为字符串结束）</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980515921-fb783012-b088-49be-b97f-830a2bf183df.png" alt=""></p>
+<p>可以发现一样的前缀 <code>ab</code> 已经被合并为三个节点，可能在现在这里没有体现出来，但在非常大的数据集下压缩效率是非常显著的。</p>
+<h2>压缩前缀树</h2>
+<p>但是仍然不够，下面介绍基于<code>Succinct Data Structure</code> 构建的Succinct Set。</p>
+<p>首先定义一个节点如何转化为一串字符，设节点有x个子节点，则该节点由x个0和1个1表示，最终如下图所示。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980522736-f7426c8e-198f-4664-9fbd-1739ae41e93e.png" alt=""></p>
+<p>将整个前缀树按层序遍历拍平得到 <code>001 001 01 01 01 01 01 1 1 1</code> 。如下图所示</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980526206-eedeb1f1-e143-47a6-89c8-2f9e42c42a26.png" alt=""></p>
+<p>那怎么将其重新构建回一颗前缀树？</p>
+<p>首先建一个表格，来看看数据和节点编号之间的关系？</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>0</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>1</th>
+<th>1</th>
+<th>1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>位置</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+<td>6</td>
+<td>7</td>
+<td>8</td>
+<td>9</td>
+<td>10</td>
+<td>11</td>
+<td>12</td>
+<td>13</td>
+<td>14</td>
+<td>15</td>
+<td>16</td>
+<td>17</td>
+<td>18</td>
+</tr>
+<tr>
+<td>编号</td>
+<td>a</td>
+<td>b</td>
+<td><strong>0</strong></td>
+<td>b</td>
+<td>x</td>
+<td><strong>1</strong></td>
+<td>u</td>
+<td><strong>2</strong></td>
+<td>c</td>
+<td><strong>3</strong></td>
+<td>y</td>
+<td><strong>4</strong></td>
+<td>v</td>
+<td><strong>5</strong></td>
+<td>d</td>
+<td><strong>6</strong></td>
+<td><strong>7</strong></td>
+<td><strong>8</strong></td>
+<td><strong>9</strong></td>
+</tr>
+</tbody>
+</table>
+<p>可以发现第 <code>x</code> 个节点的编号就是 第 <code>x</code> 个1！那么定义第一个辅助函数 <code>Rank1(r)</code> 表示 <code>[0, r]</code> 中 1 的个数。那么第 i 个位置对应的编号就是 <code>Rank(i) - 1</code> （必须为节点)</p>
+<p>那我们知道一个节点编号如何定位回位置呢？可以发现就是1的位置！那么定义第二个辅助函数 <code>Select(i)</code> 表示第 <code>i</code> 个节点的位置！</p>
+<p>于是我们得到了下面的新的表格</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>0</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>0</th>
+<th>1</th>
+<th>1</th>
+<th>1</th>
+<th>1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>位置</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+<td>6</td>
+<td>7</td>
+<td>8</td>
+<td>9</td>
+<td>10</td>
+<td>11</td>
+<td>12</td>
+<td>13</td>
+<td>14</td>
+<td>15</td>
+<td>16</td>
+<td>17</td>
+<td>18</td>
+</tr>
+<tr>
+<td>编号</td>
+<td>a</td>
+<td>b</td>
+<td><strong>0</strong></td>
+<td>b</td>
+<td>x</td>
+<td><strong>1</strong></td>
+<td>u</td>
+<td><strong>2</strong></td>
+<td>c</td>
+<td><strong>3</strong></td>
+<td>y</td>
+<td><strong>4</strong></td>
+<td>v</td>
+<td><strong>5</strong></td>
+<td>d</td>
+<td><strong>6</strong></td>
+<td><strong>7</strong></td>
+<td><strong>8</strong></td>
+<td><strong>9</strong></td>
+</tr>
+<tr>
+<td>Rank</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>2</td>
+<td>3</td>
+<td>3</td>
+<td>4</td>
+<td>4</td>
+<td>5</td>
+<td>5</td>
+<td>6</td>
+<td>6</td>
+<td>7</td>
+<td>8</td>
+<td>9</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Select</td>
+<td>2</td>
+<td>5</td>
+<td>7</td>
+<td>9</td>
+<td>11</td>
+<td>13</td>
+<td>15</td>
+<td>16</td>
+<td>17</td>
+<td>18</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>不知道缺少什么了，那么我们就来执行前缀树该有的功能来看看还差什么！</p>
+<p>回到最开始的压缩前缀树的图。模拟搜索一下 <code>axy</code></p>
+<ol>
+<li>找到 <code>a</code> 的边，是位置 <code>0</code> ，然后要跳到子节点 <code>1</code></li>
+</ol>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980531937-8e581b3e-32a3-4cc9-8a3e-53bbe39bf24d.png" alt=""></p>
+<p>问题来了！我们怎么知道要跳到哪个节点？</p>
+<p>考虑到是层序遍历得到的数据，每一个 <code>0</code> 其实都是对应着一个节点和一条边，又由于根节点没有边，则第 <code>x</code> 个 <code>0</code> 对应的就是第 <code>x + 1</code> 个节点！那就接着操作</p>
+<ol start="2">
+<li>找到 <code>x</code> 的边，是位置 <code>3</code> ，然后要跳到子节点 <code>4</code></li>
+</ol>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980536264-00fe813d-e04c-4e75-9fb7-f7ddcd8845c2.png" alt=""></p>
+<ol start="3">
+<li>找到 <code>y</code> 的边，是位置 <code>3</code> ，然后要跳到子节点 <code>4</code></li>
+</ol>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/40368437/1746980539646-9603ef05-a80e-4d3d-be6d-75000e39db16.png" alt=""></p>
+<p>然后发现是叶子节点！这太巧了！发现压缩数据中并不能得知这个点是不是叶子节点，需要额外的标记，于是需要一个 <code>leaves</code> 数组来标记叶子节点，<code>leaves[i]</code> 为 <code>1</code> 表示节点 <code>i</code> 是叶子节点！</p>
+<h2>总结</h2>
+<h3>辅助函数：Rank 和 Select</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">函数</th>
+<th style="text-align:left">作用</th>
+<th style="text-align:left">举个栗子 🌰</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>Rank1(r)</code></td>
+<td style="text-align:left">数一数前 <code>r</code> 个位置有几个 <code>1</code></td>
+<td style="text-align:left">前5个位置有2个<code>1</code> → <code>Rank1(5)=2</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>Select(i)</code></td>
+<td style="text-align:left">找第 <code>i</code> 个 <code>1</code> 藏在哪儿</td>
+<td style="text-align:left">第1个<code>1</code>在位置5 → <code>Select(1)=5</code></td>
+</tr>
+</tbody>
+</table>
+<h3>为什么需要“终点标记”？</h3>
+<ul>
+<li><strong>真相</strong>：压缩后的二进制串看不出哪里是单词结尾，就像一本书没了句号！</li>
+<li><strong>解决方案</strong>：用 <code>leaves</code> 数组当“小红旗” 🚩，标记哪些节点是终点。</li>
+</ul>
+<h3>对比：传统Trie Vs SuccinctSet Vs BinarySearch</h3>
+<p>200kweb2.txt（忽略构建时间），查询速度最慢可能是我写拉了</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">结构</th>
+<th style="text-align:left">内存占用(KB)</th>
+<th style="text-align:left">压缩率</th>
+<th style="text-align:left">查询速度(OPS)</th>
+<th style="text-align:left">适合场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">传统Trie</td>
+<td style="text-align:left">69367.78</td>
+<td style="text-align:left">2850%</td>
+<td style="text-align:left">1560000</td>
+<td style="text-align:left">动态的小型数据量</td>
+</tr>
+<tr>
+<td style="text-align:left">Succinct Set</td>
+<td style="text-align:left">1604.5</td>
+<td style="text-align:left">65%</td>
+<td style="text-align:left">740000</td>
+<td style="text-align:left">静态的海量字符串集合</td>
+</tr>
+<tr>
+<td style="text-align:left">BinarySearch</td>
+<td style="text-align:left">10836.37</td>
+<td style="text-align:left">445%</td>
+<td style="text-align:left">1680000</td>
+<td style="text-align:left">简单的使用场景</td>
+</tr>
+</tbody>
+</table>
+<p>下面是简单的C++实现</p>
+<pre><code class="language-cpp">#include &lt;cstddef&gt;
+#include &lt;cstdint&gt;
+#include &lt;vector&gt;
+#include &lt;string&gt;
+#include &lt;queue&gt;
+#include &lt;algorithm&gt;
+
+class BitMap {
+    static constexpr size_t GAP = 64;
+public:
+    BitMap(size_t n = 0) : bits_((n + 63) / 64) {}
+    void Set(size_t p, bool v = true) {
+        if (bits_.size() &lt;= (p / 64)) {
+            bits_.resize(2 * (p / 64) + 1);
+        }
+        uint64_t mask = 1ULL &lt;&lt; (p % 64);
+        bits_[p / 64] = v ? (bits_[p / 64] | mask) : (bits_[p / 64] &amp; ~mask);
+    }
+    bool Get(size_t p) {
+        if (bits_.size() &lt;= (p / 64)) {
+            bits_.resize(2 * (p / 64) + 1);
+        }
+        return (bits_[p / 64] &amp; (1ULL &lt;&lt; (p % 64))) != 0;
+    }
+    size_t Size() const {
+        return bits_.size() * 64;
+    }
+    size_t Rank(size_t r) {
+        size_t block = r / 64, offset = r % 64;
+        return ranks[block] + __builtin_popcountll(bits_[block] &amp; ((1ULL &lt;&lt; offset) - 1));
+    }
+    size_t Select(size_t k) {
+        if (k == 0 || k &gt; ranks.back()) return -1;
+
+        // hit the precache;
+        if (k % GAP == 0) {
+            return selects[k / GAP - 1];
+        }
+        const size_t m = (k - 1) / GAP;
+        size_t start_block = 0;
+        if (m &gt; 0) {
+            start_block = selects[m - 1] / 64;
+            k -= ranks[start_block];
+        }
+
+        for (size_t idx = start_block; idx &lt; bits_.size(); ++idx) {
+            uint64_t block = bits_[idx];
+            size_t cnt = __builtin_popcountll(block);
+            if (cnt &lt; k) {
+                k -= cnt;
+                continue;
+            }
+            for (size_t i = 0; i &lt; 64; ++i) {
+                if (block &amp; (1ULL &lt;&lt; i)) {
+                    if (--k == 0) return idx * 64 + i;
+                }
+            }
+        }
+        return -1;
+    }
+    
+    void Precompute() {
+        ranks.assign(1, 0);
+        size_t cnt = 0;
+        for (size_t i = 0; i &lt; bits_.size(); ++i) {
+            uint64_t block = bits_[i];
+            ranks.push_back(ranks.back() + __builtin_popcountll(block));
+            for (size_t j = 0; j &lt; 64; j++) {
+                if (block &gt;&gt; j &amp; 1) {
+                    cnt ++;
+                    if (cnt % GAP == 0) {
+                        selects.push_back(i * 64 + j);
+                    }
+                }
+            }
+        }
+    }
+private:
+    std::vector&lt;uint64_t&gt; bits_;
+    std::vector&lt;size_t&gt; ranks, selects;
+};
+
+class SuccinctSet {
+public:
+    explicit SuccinctSet(std::vector&lt;std::string&gt; keys) {
+        std::sort(keys.begin(), keys.end());
+
+        std::queue&lt;std::tuple&lt;size_t, size_t, size_t&gt;&gt; q;
+        q.emplace(0, keys.size(), 0);
+        size_t nodeCount = 0;
+        for (size_t nodeId = 0; !q.empty(); nodeId ++) {
+            auto [L, R, index] = q.front();
+            q.pop();
+            
+            while (L &lt; R) {
+
+                while (L &lt; R &amp;&amp; keys[L].size() &lt;= index) {
+                    L++;
+                    is_leaf_.Set(nodeId, true);
+                }
+                if (L == R) {
+                    break;
+                }
+
+                int nL = L + 1;
+                while (nL &lt; R &amp;&amp; index &lt; keys[nL].size() &amp;&amp; keys[nL][index] == keys[L][index]) {
+                    nL++;
+                }
+
+                labels_.push_back(keys[L][index]);
+                q.emplace(L, nL, index + 1);
+                label_bitmap_.Set(nodeCount ++, false);
+                L = nL;
+            }
+            label_bitmap_.Set(nodeCount ++, true);
+        }
+        label_bitmap_.Precompute();
+    }
+
+    bool Contains(const std::string &amp;key) {
+        size_t nodeId = 0, bitmapIndex = 0;
+        for (char c : key) {
+            while (bitmapIndex &lt; label_bitmap_.Size()) {
+                if (label_bitmap_.Get(bitmapIndex)) {
+                    return false;
+                }
+
+                if (labels_[bitmapIndex - nodeId] == c) {
+                    break;
+                }
+
+                bitmapIndex ++;
+            }
+            nodeId = bitmapIndex + 1 - label_bitmap_.Rank(bitmapIndex + 1);
+            bitmapIndex = label_bitmap_.Select(nodeId) + 1;
+        }
+        return is_leaf_.Get(nodeId);
+    }
+private:
+    std::vector&lt;char&gt; labels_;
+    BitMap label_bitmap_;
+    BitMap is_leaf_;
+};
+</code></pre>
+
+      </main>
+    </article>
+
+    <footer>
+      © 2025 WangJerome 的 blog. 保留所有权利。
+    </footer>
+  </div>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
