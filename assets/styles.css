@@ -399,6 +399,7 @@ hr {
 .content table th,
 .content table td {
     display: table-cell;
+    white-space: nowrap;
 }
 
 .content thead {
