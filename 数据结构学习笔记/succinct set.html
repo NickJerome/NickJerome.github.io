@@ -1,123 +1,64 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <title>基于LOUDS 的 Succinct Set 详解 - WangJerome 的 blog</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      margin: 0;
-      padding: 2rem 1rem 3rem;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      line-height: 1.7;
-      color: #111827;
-    }
+    <head>
+        <meta charset="utf-8" />
+        <title>基于LOUDS 的 Succinct Set 详解 - WangJerome 的 blog</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/assets/styles.css" />
+        <link
+            rel="preload"
+            href="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/styles/github.min.css"
+            as="style"
+            onload="this.onload=null;this.rel='stylesheet'"
+            id="hljs-light"
+        />
+        <link
+            rel="preload"
+            href="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/styles/github-dark.min.css"
+            as="style"
+            id="hljs-dark"
+            disabled
+        />
+        <noscript>
+            <link
+                rel="stylesheet"
+                href="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/styles/github.min.css"
+            />
+        </noscript>
+        <script
+            src="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/highlight.min.js"
+            defer
+        ></script>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1 class="site-name">WangJerome 的 blog</h1>
+                    <button class="theme-toggle" onclick="toggleTheme()" aria-label="切换主题">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+                <nav>
+                    <a href="/" class="">首页</a>
+                    <a href="/categories.html" class="">分类</a>
+                    <a href="/about.html" class="">关于</a>
+                </nav>
+            </header>
 
-    .page {
-      max-width: 720px;
-      margin: 0 auto;
-    }
-
-    h1.site-name {
-      margin: 0 0 .25rem;
-      font-size: 1.6rem;
-      font-weight: 700;
-    }
-
-    nav a {
-      font-size: .9rem;
-      margin-right: 1rem;
-      color: #2563eb;
-      text-decoration: none;
-    }
-
-    nav a:hover {
-      text-decoration: underline;
-    }
-
-    h1.post-title {
-      margin: 1.75rem 0 .5rem;
-      font-size: 1.8rem;
-      font-weight: 700;
-    }
-
-    .post-date {
-      margin: 0 0 1rem;
-      font-size: .9rem;
-      color: #6b7280;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #e5e7eb;
-      margin: 1.25rem 0;
-    }
-
-    main a {
-      color: #2563eb;
-      text-decoration: none;
-    }
-
-    main img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    main table {
-      width: 100%;
-      table-layout: auto;
-      display: block;
-      overflow-x: auto;
-    }
-
-    main table th,
-    main table td {
-      white-space: nowrap;
-    }
-    
-    main a:hover {
-      text-decoration: underline;
-    }
-
-    pre {
-      padding: 0.75rem 1rem;
-      overflow-x: auto;
-      background: #f5f5f5;
-      border-radius: 6px;
-      font-size: .9rem;
-    }
-
-    code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-
-    footer {
-      margin-top: 3rem;
-      font-size: .8rem;
-      color: #9ca3af;
-      text-align: center;
-    }
-  </style>
-  <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/styles/github.min.css">
-  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/highlight.min.js"></script>
-</head>
-<body>
-  <div class="page">
-    <header>
-      <h1 class="site-name">WangJerome 的 blog</h1>
-      <nav>
-        <a href="/">首页</a>
-        <a href="/categories.html">分类</a>
-        <a href="/about.html">关于</a>
-      </nav>
-    </header>
-
-    <article>
-      <h1 class="post-title">基于LOUDS 的 Succinct Set 详解</h1>
-      <p class="post-date">2025-11-21</p>
-      <hr />
-      <main>
-        <h2>前缀树</h2>
+            <article>
+                <h1 class="post-title">基于LOUDS 的 Succinct Set 详解</h1>
+                <div class="post-meta">
+                    <span class="post-date">2025-11-24</span>
+                </div>
+                <hr />
+                <div class="content"><h2>前缀树</h2>
 <p>前缀树是一个高效的存储字符串集合的数据结构，通过同一个前缀共用节点来压缩信息，能够在随机的字符串集合中有着较好的压缩效率。举个例子，假设有一个字符串集合 <code>[ab， abc， abcd， axy， buv]</code> ，找这个集合构建的前缀树应该如下图所示。橙色的表示为叶子节点（定义为字符串结束）</p>
 <p><img src="/assets/succinct%20set/image.png" alt=""></p>
 <p>可以发现一样的前缀 <code>ab</code> 已经被合并为三个节点，可能在现在这里没有体现出来，但在非常大的数据集下压缩效率是非常显著的。</p>
@@ -546,14 +487,69 @@ private:
     BitMap is_leaf_;
 };
 </code></pre>
+</div>
+            </article>
 
-      </main>
-    </article>
+            <footer>© 2025 WangJerome 的 blog. 保留所有权利。</footer>
+        </div>
 
-    <footer>
-      © 2025 WangJerome 的 blog. 保留所有权利。
-    </footer>
-  </div>
-  <script>hljs.highlightAll();</script>
-</body>
+        <script>
+            function toggleTheme() {
+                const html = document.documentElement;
+                const icon = document.querySelector('.theme-icon');
+                const isDark = html.classList.contains('dark');
+                const lightLink = document.getElementById('hljs-light');
+                const darkLink = document.getElementById('hljs-dark');
+
+                if (isDark) {
+                    html.classList.remove('dark');
+                    icon.textContent = '🌙';
+                    if (lightLink && darkLink) {
+                        lightLink.disabled = false;
+                        darkLink.disabled = true;
+                    }
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    html.classList.add('dark');
+                    icon.textContent = '☀️';
+                    if (lightLink && darkLink) {
+                        lightLink.disabled = true;
+                        darkLink.disabled = false;
+                        if (!darkLink.href) {
+                            darkLink.rel = 'stylesheet';
+                            darkLink.href = 'https://unpkg.com/@highlightjs/cdn-assets@11.11.1/styles/github-dark.min.css';
+                        }
+                    }
+                    localStorage.setItem('theme', 'dark');
+                }
+            }
+
+            // 初始化主题
+            (function() {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const icon = document.querySelector('.theme-icon');
+                const lightLink = document.getElementById('hljs-light');
+                const darkLink = document.getElementById('hljs-dark');
+
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                    icon.textContent = '☀️';
+                    if (lightLink && darkLink) {
+                        lightLink.disabled = true;
+                        darkLink.disabled = false;
+                        darkLink.rel = 'stylesheet';
+                        darkLink.href = 'https://unpkg.com/@highlightjs/cdn-assets@11.11.1/styles/github-dark.min.css';
+                    }
+                } else {
+                    icon.textContent = '🌙';
+                }
+            })();
+
+            // 代码高亮
+            document.addEventListener("DOMContentLoaded", function () {
+                if (typeof hljs !== "undefined") hljs.highlightAll();
+            });
+        </script>
+    </body>
 </html>

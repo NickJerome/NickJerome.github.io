@@ -1,86 +1,73 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <title>博客 - 数据结构学习笔记 - WangJerome 的 blog</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      margin: 0;
-      padding: 2rem 1rem 3rem;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      line-height: 1.6;
-      color: #111827;
-    }
+    <head>
+        <meta charset="utf-8" />
+        <title>博客 - 数据结构学习笔记 - WangJerome 的 blog</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/assets/styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1>数据结构学习笔记 - WangJerome 的 blog</h1>
+                    <button class="theme-toggle" onclick="toggleTheme()" aria-label="切换主题">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+                <nav>
+                    <a href="/" class="">首页</a>
+                    <a href="/categories.html" class="">分类</a>
+                    <a href="/about.html" class="">关于</a>
+                </nav>
+            </header>
 
-    .page {
-      max-width: 720px;
-      margin: 0 auto;
-    }
+            <main>
+                <div class="post-list"><div class="post-item">
+  <span class="post-date">2025-11-24</span>
+  <a class="post-title" href="/数据结构学习笔记/succinct set.html">基于LOUDS 的 Succinct Set 详解</a>
+</div></div>
+            </main>
 
-    h1 {
-      margin: 0 0 .25rem;
-      font-size: 1.6rem;
-      font-weight: 700;
-    }
+            <footer>© 2025 数据结构学习笔记 - WangJerome 的 blog. 保留所有权利。</footer>
+        </div>
 
-    nav a {
-      font-size: .9rem;
-      margin-right: 1rem;
-      color: #2563eb;
-      text-decoration: none;
-    }
+        <script>
+            function toggleTheme() {
+                const html = document.documentElement;
+                const icon = document.querySelector('.theme-icon');
+                const isDark = html.classList.contains('dark');
 
-    nav a:hover {
-      text-decoration: underline;
-    }
+                if (isDark) {
+                    html.classList.remove('dark');
+                    icon.textContent = '🌙';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    html.classList.add('dark');
+                    icon.textContent = '☀️';
+                    localStorage.setItem('theme', 'dark');
+                }
+            }
 
-    main {
-      margin-top: 2rem;
-    }
+            // 初始化主题
+            (function() {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const icon = document.querySelector('.theme-icon');
 
-    .post-date {
-      display: inline-block;
-      width: 7.5rem; /* 对齐日期 */
-      font-size: .9rem;
-      color: #6b7280;
-    }
-
-    main a {
-      color: #2563eb;
-      text-decoration: none;
-    }
-
-    main a:hover {
-      text-decoration: underline;
-    }
-
-    footer {
-      margin-top: 3rem;
-      font-size: .8rem;
-      color: #9ca3af;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <header>
-      <h1>数据结构学习笔记 - WangJerome 的 blog</h1>
-      <nav>
-        <a href="/">首页</a>
-        <a href="/categories.html">分类</a>
-        <a href="/about.html">关于</a>
-      </nav>
-    </header>
-
-    <main>
-      <p><span class="post-date">2025-11-21</span> <a href="/数据结构学习笔记/succinct set.html">基于LOUDS 的 Succinct Set 详解</a></p>
-    </main>
-
-    <footer>
-      © 2025 数据结构学习笔记 - WangJerome 的 blog. 保留所有权利。
-    </footer>
-  </div>
-</body>
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                    icon.textContent = '☀️';
+                } else {
+                    icon.textContent = '🌙';
+                }
+            })();
+        </script>
+    </body>
 </html>
