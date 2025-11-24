@@ -305,7 +305,6 @@ hr {
 .content a {
     color: hsl(var(--primary));
     text-decoration: underline;
-    text-decoration-offset: 2px;
     text-decoration-thickness: 1px;
     transition: all 0.2s ease;
 }
@@ -356,10 +355,8 @@ hr {
 
 .content pre {
     background: hsl(var(--code-bg));
-    padding: 1.25rem;
     border-radius: var(--radius);
     overflow-x: auto;
-    margin: 2rem 0;
     border: 1px solid hsl(var(--border));
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
 }
@@ -372,21 +369,19 @@ hr {
     color: inherit;
 }
 
+.content .table-wrapper {
+    overflow-x: auto;
+    margin: 2rem 0;
+}
+
 .content table {
     border-collapse: collapse;
-    margin: 2rem 0;
+    margin: 0;
     font-size: 0.9375rem;
     border-radius: var(--radius);
     border: 1px solid hsl(var(--border));
-    width: 100%;
-    display: block;
-    overflow-x: auto;
-}
-
-.content table > * {
-    display: table;
-    width: 100%;
-    table-layout: auto;
+    width: max-content;
+    min-width: 100%;
 }
 
 .content table th,

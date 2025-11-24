@@ -64,7 +64,7 @@
 <p><img src="/assets/succinct%20set/image-1763724407147.png" alt=""></p>
 <p>那怎么将其重新构建回一颗前缀树？</p>
 <p>首先建一个表格，来看看数据和节点编号之间的关系？</p>
-<table>
+<div class="table-wrapper"><table>
 <thead>
 <tr>
 <th></th>
@@ -135,11 +135,11 @@
 <td><strong>9</strong></td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>可以发现第 <code>x</code> 个节点的编号就是 第 <code>x</code> 个1！那么定义第一个辅助函数 <code>Rank1(r)</code> 表示 <code>[0, r]</code> 中 1 的个数。那么第 i 个位置对应的编号就是 <code>Rank(i) - 1</code> （必须为节点)</p>
 <p>那我们知道一个节点编号如何定位回位置呢？可以发现就是1的位置！那么定义第二个辅助函数 <code>Select(i)</code> 表示第 <code>i</code> 个节点的位置！</p>
 <p>于是我们得到了下面的新的表格</p>
-<table>
+<div class="table-wrapper"><table>
 <thead>
 <tr>
 <th></th>
@@ -254,7 +254,7 @@
 <td></td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>不知道缺少什么了，那么我们就来执行前缀树该有的功能来看看还差什么！</p>
 <p>回到最开始的压缩前缀树的图。模拟搜索一下 <code>axy</code></p>
 <ol>
@@ -274,7 +274,7 @@
 <p>然后发现是叶子节点！这太巧了！发现压缩数据中并不能得知这个点是不是叶子节点，需要额外的标记，于是需要一个 <code>leaves</code> 数组来标记叶子节点，<code>leaves[i]</code> 为 <code>1</code> 表示节点 <code>i</code> 是叶子节点！</p>
 <h2>总结</h2>
 <h3>辅助函数：Rank 和 Select</h3>
-<table>
+<div class="table-wrapper"><table>
 <thead>
 <tr>
 <th style="text-align:left">函数</th>
@@ -294,7 +294,7 @@
 <td style="text-align:left">第1个<code>1</code>在位置5 → <code>Select(1)=5</code></td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h3>为什么需要“终点标记”？</h3>
 <ul>
 <li><strong>真相</strong>：压缩后的二进制串看不出哪里是单词结尾，就像一本书没了句号！</li>
@@ -302,7 +302,7 @@
 </ul>
 <h3>对比：传统Trie Vs SuccinctSet Vs BinarySearch</h3>
 <p>200kweb2.txt（忽略构建时间），查询速度最慢可能是我写拉了</p>
-<table>
+<div class="table-wrapper"><table>
 <thead>
 <tr>
 <th style="text-align:left">结构</th>
@@ -335,7 +335,7 @@
 <td style="text-align:left">简单的使用场景</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>下面是简单的C++实现</p>
 <pre><code class="language-cpp">#include &lt;cstddef&gt;
 #include &lt;cstdint&gt;
