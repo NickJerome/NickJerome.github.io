@@ -375,11 +375,13 @@ hr {
 
 .content table {
     width: 100%;
+    max-width: 100%;
     border-collapse: collapse;
     margin: 2rem 0;
     font-size: 0.9375rem;
     border-radius: var(--radius);
-    overflow: hidden;
+    overflow-x: auto;
+    display: block;
     border: 1px solid hsl(var(--border));
 }
 
@@ -410,10 +412,6 @@ hr {
 .content img {
     max-width: 100%;
     height: auto;
-    border-radius: var(--radius);
-    margin: 2rem 0;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    border: 1px solid hsl(var(--border));
 }
 
 .content strong {
