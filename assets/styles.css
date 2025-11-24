@@ -387,10 +387,8 @@ hr {
 
 .content table thead,
 .content table tbody {
-    display: table;
-    width: auto;
-    min-width: 100%;
-    table-layout: auto;
+    display: table-row-group;
+    width: 100%;
 }
 
 .content table tr {
