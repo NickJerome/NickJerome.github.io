@@ -379,26 +379,20 @@ hr {
     border-radius: var(--radius);
     border: 1px solid hsl(var(--border));
     width: 100%;
-    min-width: 100%;
     display: block;
     overflow-x: auto;
 }
 
-.content table thead,
-.content table tbody {
+.content table > * {
     display: table;
     width: 100%;
-    table-layout: fixed;
-}
-
-.content table tr {
-    display: table-row;
+    table-layout: auto;
 }
 
 .content table th,
 .content table td {
-    display: table-cell;
     white-space: nowrap;
+    padding: 0.75rem 1rem;
 }
 
 .content thead {
