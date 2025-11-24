@@ -373,15 +373,32 @@ hr {
 }
 
 .content table {
-    width: 100%;
-    max-width: 100%;
     border-collapse: collapse;
     margin: 2rem 0;
     font-size: 0.9375rem;
     border-radius: var(--radius);
-    overflow-x: auto;
-    display: block;
     border: 1px solid hsl(var(--border));
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100%;
+}
+
+.content table thead,
+.content table tbody {
+    display: table;
+    width: 100%;
+    table-layout: auto;
+}
+
+.content table tr {
+    display: table-row;
+}
+
+.content table th,
+.content table td {
+    display: table-cell;
 }
 
 .content thead {
